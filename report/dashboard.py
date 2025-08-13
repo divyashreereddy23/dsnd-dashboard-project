@@ -133,49 +133,43 @@ class BarChart(MatplotlibViz):
     # Use the same parameters as the parent
     def visualization(self, asset_id, model):
 
-        # Using the model and asset_id arguments
-        # pass the `asset_id` to the `.model_data` method
-        # to receive the data that can be passed to the machine
-        # learning model
-        data = model.ml_data()
-        ml_features = data[['total_negative_events', 'total_positive_events']].copy()
-        ml_features.columns = ['negative_events', 'positive_events']
-        ml_features = ml_features.fillna(0)
+        try:
+            # Get the ML data
+            data = model.ml_data()
         
-        # Using the predictor class attribute
-        # pass the data to the `predict_proba` method
-        predictions = self.predictor.predict_proba(data)
+            print("DEBUG: Data columns:", list(data.columns))
+            print("DEBUG: Data shape:", data.shape)
+            print("DEBUG: First few rows:")
+            print(data.head())
         
-        # Index the second column of predict_proba output
-        # The shape should be (<number of records>, 1)
-        predictions = predictions[:, 1]
+            # Try to get feature names from the model
+            try:
+                print("DEBUG: Model feature names:", self.predictor.feature_names_in_)
+            except:
+                print("DEBUG: Model doesn't have feature_names_in_ attribute")
         
-        
-        # Below, create a `pred` variable set to
-        # the number we want to visualize
-        #
-        # If the model's name attribute is "team"
-        # We want to visualize the mean of the predict_proba output
-        if model.name == "team":
-            pred = predictions.mean()
+            # For now, just create a simple prediction without ML
+            # This will allow your dashboard to work while you fix the ML part
+            if model.name == "team":
+                pred = 0.6  # Default team risk
+            else:
+                pred = 0.4  # Default individual risk
             
-        # Otherwise set `pred` to the first value
-        # of the predict_proba output
-        else:
-            pred = predictions[0]
-        
-        # Initialize a matplotlib subplot
+        except Exception as e:
+            print(f"DEBUG: Error in data processing: {e}")
+            pred = 0.5  # Safe default
+    
+        # Initialize matplotlib subplot
         fig, ax = plt.subplots()
-        
-        # Run the following code unchanged
+    
+        # Create bar chart
         ax.barh([''], [pred])
         ax.set_xlim(0, 1)
-        ax.set_title('Predicted Recruitment Risk', fontsize=20)
-        
-        # pass the axis variable
-        # to the `.set_axis_styling`
-        # method
+        ax.set_title('Predicted Recruitment Risk (Debug Mode)', fontsize=20)
+    
+        # Apply styling
         self.set_axis_styling(ax)
+
  
 # Create a subclass of combined_components/CombinedComponent
 # called Visualizations       
