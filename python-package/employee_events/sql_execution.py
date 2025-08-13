@@ -5,7 +5,7 @@ import pandas as pd
 
 # Using pathlib, create a `db_path` variable
 # that points to the absolute path for the `employee_events.db` file
-#### YOUR CODE HERE
+db_path = Path(__file__).parent / "employee_events.db"
 
 
 # OPTION 1: MIXIN
@@ -16,54 +16,49 @@ class QueryMixin:
     Think of this like a helper that knows how to talk to the database!
     """
 
-    def __init__(self):
-        # Find the database file (it's like finding the treasure chest!)
-        self.db_path = Path(__file__).parent / "employee_events.db"
-
-    def execute_query(self, query, params=None):
-        """
-        This method opens the database, runs your question (query), 
-        and gives you back the answer - just like asking a librarian!
-        """
-        connection = None
-        try:
-            # Open connection to database (like opening a door)
-            connection = sqlite3.connect(self.db_path)
-            connection.row_factory = sqlite3.Row  # Makes results easier to work with
-            cursor = connection.cursor()
-            
-            # Execute the query (ask the question)
-            if params:
-                cursor.execute(query, params)
-            else:
-                cursor.execute(query)
-            
-            # Get all results (collect all the answers)
-            results = cursor.fetchall()
-            
-            # Convert to list of dictionaries (make it easy to read)
-            return [dict(row) for row in results]
-            
-        except sqlite3.Error as e:
-            print(f"Database error: {e}")
-            return []
-        finally:
-            # Always close the connection (like closing the door when you leave)
-            if connection:
-                connection.close()
-
     # Define a method named `pandas_query`
     # that receives an sql query as a string
     # and returns the query's result
     # as a pandas dataframe
-    #### YOUR CODE HERE
+    def pandas_query(self, sql_query):
+        """
+        Execute an SQL query and return results as a pandas DataFrame.
+        
+        Args:
+            sql_query (str): SQL query string to execute
+            
+        Returns:
+            pandas.DataFrame: Query results as a DataFrame
+        """
+        connection = connect(db_path)
+        try:
+            df = pd.read_sql_query(sql_query, connection)
+            return df
+        finally:
+            connection.close()
 
     # Define a method named `query`
     # that receives an sql_query as a string
     # and returns the query's result as
     # a list of tuples. (You will need
     # to use an sqlite3 cursor)
-    #### YOUR CODE HERE
+    def query(self, sql_query):
+        """
+        Execute an SQL query and return results as a list of tuples.
+        
+        Args:
+            sql_query (str): SQL query string to execute
+            
+        Returns:
+            list: Query results as a list of tuples
+        """
+        connection = connect(db_path)
+        cursor = connection.cursor()
+        try:
+            result = cursor.execute(sql_query).fetchall()
+            return result
+        finally:
+            connection.close()
     
 
  
