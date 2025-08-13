@@ -67,3 +67,81 @@ def table_names(db_conn):
     # is in the table_names list
     #### YOUR CODE HERE
 
+import pytest
+import sqlite3
+from pathlib import Path
+
+# Set up database path (like setting the address to the database!)
+DB_PATH = Path(__file__).parent.parent / "python-package" / "employee_events" / "employee_events.db"
+
+@pytest.fixture
+def db_path():
+    """
+    This function gives us the path to the database.
+    Think of it like giving directions to the treasure chest!
+    """
+    return DB_PATH
+
+def test_db_exists(db_path):
+    """
+    Test that the database file exists.
+    Like checking if the treasure chest is really there!
+    """
+    assert db_path.exists(), f"Database file not found at {db_path}"
+
+def test_employee_table_exists(db_path):
+    """
+    Test that the employee table exists in the database.
+    Like checking if there's a page about students in the school directory!
+    """
+    connection = sqlite3.connect(db_path)
+    cursor = connection.cursor()
+    
+    # Check if the table exists
+    cursor.execute("""
+        SELECT name FROM sqlite_master 
+        WHERE type='table' AND name='employee'
+    """)
+    
+    result = cursor.fetchone()
+    connection.close()
+    
+    assert result is not None, "Employee table does not exist"
+
+def test_team_table_exists(db_path):
+    """
+    Test that the team table exists in the database.
+    Like checking if there's a page about classes in the school directory!
+    """
+    connection = sqlite3.connect(db_path)
+    cursor = connection.cursor()
+    
+    # Check if the table exists
+    cursor.execute("""
+        SELECT name FROM sqlite_master 
+        WHERE type='table' AND name='team'
+    """)
+    
+    result = cursor.fetchone()
+    connection.close()
+    
+    assert result is not None, "Team table does not exist"
+
+def test_employee_events_table_exists(db_path):
+    """
+    Test that the employee_events table exists in the database.
+    Like checking if there's a page about behavior records in the school directory!
+    """
+    connection = sqlite3.connect(db_path)
+    cursor = connection.cursor()
+    
+    # Check if the table exists
+    cursor.execute("""
+        SELECT name FROM sqlite_master 
+        WHERE type='table' AND name='employee_events'
+    """)
+    
+    result = cursor.fetchone()
+    connection.close()
+    
+    assert result is not None, "Employee_events table does not exist"

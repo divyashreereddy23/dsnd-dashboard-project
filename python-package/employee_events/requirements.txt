@@ -1,1 +1,7 @@
 pandas==2.2.3
+
+# Python Package Requirements
+# These are like ingredients needed to make the package work!
+
+setuptools>=45.0.0
+wheel>=0.36.0
