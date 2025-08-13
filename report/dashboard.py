@@ -112,7 +112,7 @@ class LineChart(MatplotlibViz):
         # the border color and font color to black. 
         # Reference the base_components/matplotlib_viz file 
         # to inspect the supported keyword arguments
-        self.set_axis_styling(ax, border_color='black', font_color='black')
+        self.set_axis_styling(ax)
         
         # Set title and labels for x and y axis
         ax.set_title('Cumulative Event Counts Over Time')
