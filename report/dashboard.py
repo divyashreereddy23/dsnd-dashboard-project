@@ -138,6 +138,9 @@ class BarChart(MatplotlibViz):
         # to receive the data that can be passed to the machine
         # learning model
         data = model.ml_data()
+        ml_features = data[['total_negative_events', 'total_positive_events']].copy()
+        ml_features.columns = ['negative_events', 'positive_events']
+        ml_features = ml_features.fillna(0)
         
         # Using the predictor class attribute
         # pass the data to the `predict_proba` method
