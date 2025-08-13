@@ -3,6 +3,8 @@ from fasthtml.common import Div
 
 class CombinedComponent:
 
+    children = []
+
     outer_div_type = Div(cls='container')
     
     def __call__(self, userid, model):
