@@ -11,7 +11,7 @@ from utils import load_model
 
 """
 Below, we import the parent classes
-you will use for subclassing
+to use for subclassing
 """
 from base_components import (
     Dropdown,
@@ -245,7 +245,7 @@ class DashboardFilters(BaseComponent):
                 style="margin: 10px 0;"
             ),
             
-            # CRITICAL: These attributes make the POST request work
+            # These attributes make the POST request work
             action="/update_data",
             method="POST",
             style="border: 1px solid #ddd; padding: 15px; margin: 20px 0; border-radius: 5px;"

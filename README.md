@@ -3,25 +3,37 @@
 
 This repository contains starter code for the **Software Engineering for Data Scientists** final project. Please reference your course materials for documentation on this repository's structure and important files. Happy coding!
 
+# Employee Performance Dashboard 🏢📊
+
+A comprehensive data science project for tracking employee performance and recruitment risk!
+
+## What does this project do? 🤔
+
+This dashboard helps companies:
+- Track how well their employees are doing
+- See which employees might leave for other jobs
+- Monitor team performance
+- Make better decisions about their workforce
+
 ### Repository Structure
 ```
 ├── README.md
-├── assets
+├── assets                            # Extra files (AI model, styles)
 │   ├── model.pkl
 │   └── report.css
 ├── env
-├── python-package
-│   ├── employee_events
+├── python-package.                   # The smart tools that talk to the database
+│   ├── employee_events               # Our main package
 │   │   ├── __init__.py
-│   │   ├── employee.py
+│   │   ├── employee.py               # Handles individual employee data
 │   │   ├── employee_events.db
-│   │   ├── query_base.py
-│   │   ├── sql_execution.py
-│   │   └── team.py
+│   │   ├── query_base.py             # Basic database functions
+│   │   ├── sql_execution.py          # Database connection helper
+│   │   └── team.py                   # Handles team data
 │   ├── requirements.txt
-│   ├── setup.py
-├── report
-│   ├── base_components
+│   ├── setup.py                      # Instructions for installing our package
+├── report                            # The dashboard website
+│   ├── base_components               # Reusable website pieces
 │   │   ├── __init__.py
 │   │   ├── base_component.py
 │   │   ├── data_table.py
@@ -32,11 +44,11 @@ This repository contains starter code for the **Software Engineering for Data Sc
 │   │   ├── __init__.py
 │   │   ├── combined_component.py
 │   │   └── form_group.py
-│   ├── dashboard.py
-│   └── utils.py
-├── requirements.txt
+│   ├── dashboard.py                  # Main dashboard application
+│   └── utils.py                      # Helper functions
+├── requirements.txt                  # List of needed tools
 ├── start
-├── tests
+├── tests                             # Tests to make sure everything works
     └── test_employee_events.py
 ```
 
@@ -78,39 +90,6 @@ erDiagram
   team ||--o{ employee_events : "team_id"
   employee ||--o{ employee_events : "employee_id"
   notes }o--o{ employee_events : ""
-```
-# Employee Performance Dashboard 🏢📊
-
-A comprehensive data science project for tracking employee performance and recruitment risk!
-
-## What does this project do? 🤔
-
-This dashboard helps companies:
-- Track how well their employees are doing
-- See which employees might leave for other jobs
-- Monitor team performance
-- Make better decisions about their workforce
-
-Think of it like a smart report card system for grown-ups at work!
-
-## Project Structure 📁
-
-```
-employee-events-dashboard/
-├── python-package/           # The smart tools that talk to the database
-│   ├── employee_events/      # Our main package
-│   │   ├── employee.py       # Handles individual employee data
-│   │   ├── team.py          # Handles team data
-│   │   ├── query_base.py    # Basic database functions
-│   │   └── sql_execution.py # Database connection helper
-│   └── setup.py             # Instructions for installing our package
-├── report/                   # The dashboard website
-│   ├── dashboard.py         # Main dashboard application
-│   ├── utils.py            # Helper functions
-│   └── base_components/    # Reusable website pieces
-├── tests/                   # Tests to make sure everything works
-├── assets/                  # Extra files (AI model, styles)
-└── requirements.txt         # List of needed tools
 ```
 
 ## How to set up this project 🛠️
