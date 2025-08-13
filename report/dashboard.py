@@ -1,5 +1,7 @@
 from fasthtml.common import *
 import matplotlib.pyplot as plt
+import pandas as pd
+import asyncio
 
 # Import QueryBase, Employee, Team from employee_events
 from employee_events import QueryBase, Employee, Team
@@ -132,32 +134,34 @@ class BarChart(MatplotlibViz):
     # Overwrite the parent class `visualization` method
     # Use the same parameters as the parent
     def visualization(self, asset_id, model):
-
         try:
             # Get the ML data
             data = model.ml_data()
         
-            print("DEBUG: Data columns:", list(data.columns))
-            print("DEBUG: Data shape:", data.shape)
-            print("DEBUG: First few rows:")
-            print(data.head())
-        
-            # Try to get feature names from the model
-            try:
-                print("DEBUG: Model feature names:", self.predictor.feature_names_in_)
-            except:
-                print("DEBUG: Model doesn't have feature_names_in_ attribute")
-        
-            # For now, just create a simple prediction without ML
-            # This will allow your dashboard to work while you fix the ML part
-            if model.name == "team":
-                pred = 0.6  # Default team risk
+            if len(data) > 0:
+                # Create features with the exact names the model expects
+                model_features = pd.DataFrame({
+                    'positive_events': data['total_positive_events'].fillna(0),
+                    'negative_events': data['total_negative_events'].fillna(0)
+                })
+            
+                # Make prediction using the correctly named features
+                predictions = self.predictor.predict_proba(model_features)
+            
+                # Index the second column of predict_proba output
+                predictions = predictions[:, 1]
+            
+                # Set pred based on model type
+                if model.name == "team":
+                    pred = predictions.mean()
+                else:
+                    pred = predictions[0]
             else:
-                pred = 0.4  # Default individual risk
+                pred = 0.5  # Default if no data
             
         except Exception as e:
-            print(f"DEBUG: Error in data processing: {e}")
-            pred = 0.5  # Safe default
+            print(f"ML prediction error: {e}")
+            pred = 0.5  # Fallback value
     
         # Initialize matplotlib subplot
         fig, ax = plt.subplots()
@@ -165,7 +169,7 @@ class BarChart(MatplotlibViz):
         # Create bar chart
         ax.barh([''], [pred])
         ax.set_xlim(0, 1)
-        ax.set_title('Predicted Recruitment Risk (Debug Mode)', fontsize=20)
+        ax.set_title('Predicted Recruitment Risk', fontsize=20)
     
         # Apply styling
         self.set_axis_styling(ax)
@@ -198,23 +202,54 @@ class NotesTable(DataTable):
         return model.notes(entity_id)
     
 
-class DashboardFilters(FormGroup):
-
-    id = "top-filters"
-    action = "/update_data"
-    method="POST"
-
-    children = [
-        Radio(
-            values=["Employee", "Team"],
-            name='profile_type',
-            hx_get='/update_dropdown',
-            hx_target='#selector'
+class DashboardFilters(BaseComponent):
+    """Simple form component that ensures proper POST submission"""
+    
+    def build_component(self, entity_id, model):
+        # Get employee and team data for dropdowns
+        employee_model = Employee()
+        team_model = Team()
+        
+        employees = employee_model.names()
+        teams = team_model.names()
+        
+        return Form(
+            Div(
+                # Radio buttons for Employee/Team selection
+                Label("Select Type:"),
+                Br(),
+                Input(type="radio", name="profile_type", value="Employee", id="emp_radio", checked=True),
+                Label("Employee", fr="emp_radio"),
+                Input(type="radio", name="profile_type", value="Team", id="team_radio"),
+                Label("Team", fr="team_radio"),
+                style="margin: 10px 0;"
             ),
-        ReportDropdown(
-            id="selector",
-            name="user-selection")
-        ]
+            
+            Div(
+                # Dropdown for employee selection  
+                Label("Select Employee:"),
+                Select(
+                    Option("Select an employee", value=""),
+                    *[Option(f"{emp[0]} (ID: {emp[1]})", value=str(emp[1])) 
+                      for emp in employees],
+                    name="user-selection",
+                    id="employee_select"
+                ),
+                style="margin: 10px 0;"
+            ),
+            
+            Div(
+                # Submit button
+                Button("Submit", type="submit", 
+                       style="padding: 8px 16px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;"),
+                style="margin: 10px 0;"
+            ),
+            
+            # CRITICAL: These attributes make the POST request work
+            action="/update_data",
+            method="POST",
+            style="border: 1px solid #ddd; padding: 15px; margin: 20px 0; border-radius: 5px;"
+        )
     
 # Create a subclass of CombinedComponents
 # called `Report`
@@ -229,6 +264,21 @@ class Report(CombinedComponent):
 
 # Initialize a fasthtml app 
 app = FastHTML()
+
+# Add this right after creating your FastHTML app
+@app.route("/{path:path}", methods=["POST", "PUT", "DELETE", "PATCH"])
+async def catch_all_posts(request):
+    print(f"🚨 CAUGHT POST REQUEST:")
+    print(f"   Method: {request.method}")
+    print(f"   URL: {request.url}")
+    print(f"   Path: {request.url.path}")
+    try:
+        form_data = await request.form()
+        print(f"   Form data: {dict(form_data)}")
+    except Exception as e:
+        print(f"   Form data error: {e}")
+    
+    return {"error": f"Unsupported {request.method} request to {request.url.path}"}
 
 # Initialize the `Report` class
 report = Report()
@@ -292,14 +342,23 @@ def update_dropdown(r):
 @app.post('/update_data')
 async def update_data(r):
     from fasthtml.common import RedirectResponse
-    data = await r.form()
-    profile_type = data._dict['profile_type']
-    id = data._dict['user-selection']
-    if profile_type == 'Employee':
-        return RedirectResponse(f"/employee/{id}", status_code=303)
-    elif profile_type == 'Team':
-        return RedirectResponse(f"/team/{id}", status_code=303)
-    
-
+    print("🎯 POST ROUTE HIT!")
+    try:
+        form_data = await request.form()
+        print(f"📝 Form data: {dict(form_data)}")
+        
+        profile_type = form_data.get('profile_type')
+        user_selection = form_data.get('user-selection')
+        
+        if profile_type == 'Employee' and user_selection:
+            return RedirectResponse(f"/employee/{user_selection}", status_code=303)
+        elif profile_type == 'Team' and user_selection:
+            return RedirectResponse(f"/team/{user_selection}", status_code=303)
+        else:
+            return RedirectResponse("/", status_code=303)
+            
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        return RedirectResponse("/", status_code=303)
 
 serve()
